@@ -29541,7 +29541,7 @@
 /* 470 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -29555,11 +29555,11 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var config = {
-	  apiKey: '',
-	  authDomain: '',
-	  databaseURL: '',
-	  storageBucket: '',
-	  messagingSenderId: ''
+	  apiKey: "AIzaSyB2woiGAyGnT12c7xkioReyN9of_WCDedY",
+	  authDomain: "react-chatroom.firebaseapp.com",
+	  databaseURL: "https://react-chatroom.firebaseio.com",
+	  storageBucket: "",
+	  messagingSenderId: "801522524765"
 	};
 	
 	_firebase2.default.initializeApp(config);
