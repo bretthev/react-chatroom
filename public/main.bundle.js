@@ -29418,8 +29418,8 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	// Very few things in this component are a good idea.
-	// Feel free to blow it all away.
+	var auth = _firebase2.default.auth();
+	var database = _firebase2.default.database();
 	
 	var Application = function (_Component) {
 	  _inherits(Application, _Component);
@@ -29430,9 +29430,28 @@
 	    var _this = _possibleConstructorReturn(this, (Application.__proto__ || Object.getPrototypeOf(Application)).call(this));
 	
 	    _this.state = {
-	      messages: [],
-	      draftMessage: '',
-	      user: null
+	      userName: null,
+	      user: null,
+	      messageInput: null,
+	      messages: []
+	    };
+	
+	    _this.login = function () {
+	      var google = new _firebase2.default.auth.GoogleAuthProvider();
+	      auth.signInWithPopup(google);
+	      _this.setState({ user: auth.currentUser, userName: auth.currentUser.displayName });
+	    };
+	
+	    _this.getMessageInput = function (e) {
+	      _this.state.messageInput = event.target.value;
+	    };
+	
+	    _this.sendMessage = function () {
+	      debugger;
+	      database.ref('messages').set({
+	        user: auth.currentUser.uid,
+	        timestamp: Date.now()
+	      });
 	    };
 	    return _this;
 	  }
@@ -29442,93 +29461,57 @@
 	    value: function componentDidMount() {
 	      var _this2 = this;
 	
-	      _firebase.reference.limitToLast(100).on('value', function (snapshot) {
-	        var messages = snapshot.val() || {};
-	        _this2.setState({
-	          messages: (0, _lodash.map)(messages, function (val, key) {
-	            return (0, _lodash.extend)(val, { key: key });
-	          })
-	        });
+	      auth.onAuthStateChanged(function (user) {
+	        _this2.setState({ user: auth.currentUser, userName: auth.currentUser.displayName });
 	      });
-	
-	      _firebase2.default.auth().onAuthStateChanged(function (user) {
-	        return _this2.setState({ user: user });
-	      });
-	    }
-	  }, {
-	    key: 'addNewMessage',
-	    value: function addNewMessage() {
-	      var _state = this.state;
-	      var user = _state.user;
-	      var draftMessage = _state.draftMessage;
-	
-	
-	      _firebase.reference.push({
-	        user: (0, _lodash.pick)(user, 'displayName', 'email', 'uid'),
-	        content: draftMessage,
-	        createdAt: Date.now()
-	      });
-	
-	      this.setState({ draftMessage: '' });
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _this3 = this;
-	
-	      var _state2 = this.state;
-	      var user = _state2.user;
-	      var messages = _state2.messages;
-	      var draftMessage = _state2.draftMessage;
-	
-	
-	      return _react2.default.createElement(
-	        'div',
-	        { className: 'Application' },
-	        user ? _react2.default.createElement(
-	          'p',
+	      if (this.state.user) {
+	        return _react2.default.createElement(
+	          'section',
 	          null,
-	          'Hello ',
-	          user.displayName
-	        ) : _react2.default.createElement(
-	          'button',
-	          { onClick: function onClick() {
-	              return (0, _firebase.signIn)();
-	            } },
-	          'Sign In'
-	        ),
-	        _react2.default.createElement(
-	          'ul',
-	          null,
-	          this.state.messages.map(function (m) {
-	            return _react2.default.createElement(
-	              'li',
-	              { key: m.key },
-	              m.user.displayName,
-	              ': ',
-	              m.content
-	            );
-	          })
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'MessageInput' },
 	          _react2.default.createElement('input', {
-	            placeholder: 'Message…',
-	            value: this.state.draftMessage,
-	            onChange: function onChange(e) {
-	              return _this3.setState({ draftMessage: e.target.value });
-	            }
-	          }),
+	            onChange: this.getMessageInput,
+	            placeholder: 'message-input' }),
 	          _react2.default.createElement(
 	            'button',
-	            { onClick: function onClick() {
-	                return _this3.addNewMessage();
-	              } },
-	            'Add New Message'
+	            {
+	              className: 'send-message',
+	              onClick: this.sendMessage
+	            },
+	            'Send'
+	          ),
+	          _react2.default.createElement(
+	            'section',
+	            {
+	              className: 'messageList' },
+	            _react2.default.createElement(
+	              'h2',
+	              null,
+	              this.state.userName
+	            ),
+	            _react2.default.createElement(
+	              'h3',
+	              null,
+	              this.state.messageInput
+	            )
 	          )
-	        )
-	      );
+	        );
+	      } else {
+	        return _react2.default.createElement(
+	          'section',
+	          null,
+	          _react2.default.createElement(
+	            'button',
+	            {
+	              className: 'login',
+	              onClick: this.login },
+	            'Login'
+	          )
+	        );
+	      }
 	    }
 	  }]);
 	
@@ -29546,7 +29529,6 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.reference = exports.signIn = undefined;
 	
 	var _firebase = __webpack_require__(471);
 	
@@ -29564,14 +29546,7 @@
 	
 	_firebase2.default.initializeApp(config);
 	
-	var auth = _firebase2.default.auth();
-	var provider = new _firebase2.default.auth.GoogleAuthProvider();
-	
 	exports.default = _firebase2.default;
-	var signIn = exports.signIn = function signIn() {
-	  return auth.signInWithPopup(provider);
-	};
-	var reference = exports.reference = _firebase2.default.database().ref('messages');
 
 /***/ },
 /* 471 */
@@ -47003,7 +46978,7 @@
 	
 	
 	// module
-	exports.push([module.id, "body {\n  background: #ff0080; }\n\n.hello-world {\n  font-family: cursive; }\n\n#new-message--content {\n  height: 100px;\n  border: 1px dotted aliceblue; }\n", ""]);
+	exports.push([module.id, "", ""]);
 	
 	// exports
 
